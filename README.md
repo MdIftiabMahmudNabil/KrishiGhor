@@ -8,8 +8,8 @@ A transparent crop-pricing & supply-chain web platform connecting small and medi
 
 ### 1. User Management  
 - **Location-Based & Role-Specific**  
-  - Farmer & Buyer profiles (photo, contact, region)  
-  - Transporter & Admin roles with fine-grained permissions  
+- Farmer & Buyer profiles (photo, contact, region)  
+- Transporter & Admin roles with fine-grained permissions  
 
 ### 2. Product Management  
 - Crop listing, editing & removal  
