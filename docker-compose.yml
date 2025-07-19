@@ -1,0 +1,12 @@
+services:
+  web:
+    build: ./docker/apache
+    container_name: iubmdb_web
+    ports:
+      - "8080:80"
+    volumes:
+      - src:/var/www/html
+      - uploads_data:/var/www/html/assets/uploads
+
+volumes:
+  uploads_data:
