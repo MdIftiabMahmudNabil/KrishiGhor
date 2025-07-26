@@ -1,23 +1,13 @@
-version: '3'
+version: '3.8'
+
 services:
-  db:
-    image: postgres
-    environment:
-      POSTGRES_PASSWORD: yourpassword
-      POSTGRES_DB: krishighor
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-  
   web:
-    image: php:8.2-apache
+    build: .
     ports:
       - "8080:80"
     volumes:
-      - ./:/var/www/html/
-    depends_on:
-      - db
-
-volumes:
-  postgres_data:
+      - .:/var/www/html:rw,cached  # Critical Windows flags
+    environment:
+      - APACHE_RUN_USER=www-data
+      - APACHE_RUN_GROUP=www-data
+    command: ["sh", "-c", "chown -R www-data:www-data /var/www/html && apache2-foreground"]

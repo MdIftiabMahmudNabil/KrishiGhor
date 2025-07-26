@@ -1,4 +1,6 @@
 -- Initialize Database Schema
+\connect krishighor
+
 CREATE TABLE IF NOT EXISTS crops (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
