@@ -1,63 +1,40 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from supabase import create_client, Client
+from flask import Flask, jsonify, request
+from supabase import create_client
 import os
-from datetime import datetime
-import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
-import joblib
+from ai_recommendations import get_ai_recommendations
 
-app = FastAPI()
+app = Flask(__name__)
 
-# Supabase Config
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Supabase config
+SUPABASE_URL = os.getenv('SUPABASE_URL')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY')
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# AI Model Training
-def train_price_model():
-    data = supabase.table("price_history").select("*").execute()
-    df = pd.DataFrame(data.data)
+@app.route('/api/crops', methods=['GET'])
+def get_crops():
+    # Get filters from frontend
+    search = request.args.get('search', '')
+    crop_type = request.args.get('type', '')
+    region = request.args.get('region', '')
     
-    if len(df) < 100:  # Minimum data points
-        return None
-        
-    model = RandomForestRegressor()
-    model.fit(df[['crop_id', 'days_since_recorded']], df['price'])
-    joblib.dump(model, 'price_model.joblib')
-    return model
-
-# API Endpoints
-@app.get("/api/crops")
-async def get_crops(region: str = None, type: str = None):
-    query = supabase.table("crops").select("*")
+    # Build Supabase query
+    query = supabase.table('crops').select('*')
+    
+    if search:
+        query = query.ilike('name', f'%{search}%')
+    if crop_type:
+        query = query.eq('type', crop_type)
     if region:
-        query = query.eq("region", region)
-    if type:
-        query = query.eq("type", type)
-    return query.execute().data
+        query = query.eq('region', region)
+    
+    crops = query.execute()
+    return jsonify(crops.data)
 
-@app.get("/api/price-trends/{crop_id}")
-async def get_price_trends(crop_id: int):
-    data = supabase.table("price_history") \
-           .select("*") \
-           .eq("crop_id", crop_id) \
-           .order("recorded_at") \
-           .execute()
-    return data.data
+@app.route('/api/recommendations', methods=['POST'])
+def recommendations():
+    user_cart = request.json.get('cart', [])
+    recommendations = get_ai_recommendations(user_cart)
+    return jsonify(recommendations)
 
-@app.post("/api/predict-price")
-async def predict_price(crop_id: int):
-    model = joblib.load('price_model.joblib')
-    prediction = model.predict([[crop_id, 0]])[0]
-    return {"predicted_price": round(float(prediction), 2)}
-
-# Run: uvicorn main:app --reload
+if __name__ == '__main__':
+    app.run(debug=True)
