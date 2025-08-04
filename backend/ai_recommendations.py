@@ -1,73 +1,60 @@
 import numpy as np
-from supabase import create_client
-import os
 from sklearn.neighbors import NearestNeighbors
 import joblib
 
-# Load or train simple ML model
-def load_model():
-    try:
-        model = joblib.load('crop_recommender.joblib')
-        return model
-    except:
-        return None
-
 def train_model(crop_data):
-    # Simple feature engineering
-    X = []
+    # Feature engineering
+    features = []
     for crop in crop_data:
-        # Convert crop features to numerical values
-        features = [
-            len(crop['name']),  # Name length as proxy for popularity
-            1 if 'rice' in crop['type'].lower() else 0,  # Is rice
-            1 if 'vegetable' in crop['type'].lower() else 0,  # Is vegetable
-            crop['quantity'],  # Available quantity
-        ]
-        X.append(features)
+        features.append([
+            len(crop['name']),        # Name length
+            float(crop['price']),     # Price
+            float(crop['quantity']),  # Quantity
+            1 if 'vegetable' in crop['type'].lower() else 0,
+            1 if 'fruit' in crop['type'].lower() else 0
+        ])
     
-    X = np.array(X)
-    
-    # Simple KNN model
-    model = NearestNeighbors(n_neighbors=3, algorithm='ball_tree')
+    X = np.array(features)
+    model = NearestNeighbors(n_neighbors=3, metric='cosine')
     model.fit(X)
-    
-    # Save the model
-    joblib.dump(model, 'crop_recommender.joblib')
+    joblib.dump(model, 'crop_model.joblib')
     return model
 
 def get_ai_recommendations(cart_items, supabase):
-    # Get all crops from Supabase
+    # Get all crops
     all_crops = supabase.table('crops').select('*').execute().data
     
-    # Prepare model
-    model = load_model()
-    if not model:
+    # Try loading existing model or train new one
+    try:
+        model = joblib.load('crop_model.joblib')
+    except:
         model = train_model(all_crops)
     
-    # Get recommendations for each item in cart
     recommendations = []
+    
     for item in cart_items:
-        # Find similar crops to the current cart item
+        # Find similar items to what's in cart
         item_features = [
             len(item['name']),
-            1 if 'rice' in item['type'].lower() else 0,
+            float(item['price']),
+            float(item.get('quantity', 1)),
             1 if 'vegetable' in item['type'].lower() else 0,
-            item['quantity'],
+            1 if 'fruit' in item['type'].lower() else 0
         ]
         
         distances, indices = model.kneighbors([item_features])
         
         # Add recommendations (excluding the item itself)
-        for i in indices[0]:
-            if all_crops[i]['id'] != item['id']:
-                recommendations.append(all_crops[i])
+        for idx in indices[0]:
+            if all_crops[idx]['id'] != item.get('id'):
+                recommendations.append(all_crops[idx])
     
     # Remove duplicates
-    unique_recommendations = []
+    unique_recs = []
     seen_ids = set()
     for crop in recommendations:
         if crop['id'] not in seen_ids:
-            unique_recommendations.append(crop)
+            unique_recs.append(crop)
             seen_ids.add(crop['id'])
     
-    return unique_recommendations[:5]  # Return top 5 recommendations
+    return unique_recs[:3]  # Return top 3 recommendations
