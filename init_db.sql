@@ -23,7 +23,6 @@ INSERT INTO crops (name, type, quantity, price, region, description) VALUES
 ('White Jute (Tossa)', 'Fiber', 7000.00, 50.00, 'Faridpur', 'Grade-1 jute fiber'),
 ('BARI Alu-8', 'Vegetable', 12000.00, 20.00, 'Bogra', 'High-starch potato'),
 ('BARI Sarisha-17', 'Oilseed', 4000.00, 65.00, 'Jessore', 'Canola-type mustard'),
-('BARI Chamcham-1', 'Fruit', 2000.00, 150.00, 'Tangail', 'Local citrus variety'),
 ('BARI Piaz-4', 'Vegetable', 9000.00, 35.00, 'Pabna', 'Long-storage onion');
 
 -- Create additional tables (example)
