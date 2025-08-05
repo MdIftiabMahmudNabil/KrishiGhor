@@ -19,7 +19,7 @@ const API_BASE = window.location.hostname === 'localhost' || window.location.hos
   ? 'http://localhost:5000' 
   : '/api';
 
-// Initialize
+
 document.addEventListener('DOMContentLoaded', async () => {
     await fetchCrops();
     renderCrops();
