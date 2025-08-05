@@ -30,8 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     getAiRecommendations();
 });
 
-// API COMMUNICATION (Updated with API_BASE)
-// ========================
+
 
 async function fetchCrops() {
     try {
