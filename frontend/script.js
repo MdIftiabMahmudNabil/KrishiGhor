@@ -342,7 +342,7 @@ function handleCheckout() {
 }
 
 
-//// ========================
+
 
 function showLoading(show) {
     const loader = document.getElementById('loading-indicator');
