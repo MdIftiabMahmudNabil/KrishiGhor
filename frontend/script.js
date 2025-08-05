@@ -250,7 +250,6 @@ async function getAiRecommendations() {
     }
 }
 
-// ========================
 // EVENT HANDLERS (No changes needed here)
 // ========================
 
