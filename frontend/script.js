@@ -46,7 +46,7 @@ async function fetchCrops() {
     }
 }
 
-// ========================
+
 
 function renderCrops(filteredCrops = allCrops) {
     if (filteredCrops.length === 0) {
