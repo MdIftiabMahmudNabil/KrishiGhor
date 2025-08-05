@@ -341,7 +341,7 @@ function handleCheckout() {
     toggleCart();
 }
 
-// 
+
 // UI HELPER FUNCTIONS (No changes needed here)
 // ========================
 
