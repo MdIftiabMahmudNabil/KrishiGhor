@@ -169,7 +169,6 @@ function updateCartUI() {
     cartTotal.textContent = `৳${total.toFixed(2)}`;
 }
 
-// AI RECOMMENDATIONS (Updated with API_BASE)
 // ========================
 
 async function getAiRecommendations() {
