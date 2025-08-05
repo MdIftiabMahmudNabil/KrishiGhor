@@ -11,7 +11,7 @@ const mainSearch = document.getElementById('main-search');
 const aiSection = document.getElementById('ai-section');
 const checkoutBtn = document.getElementById('checkout-btn');
 
-// State
+
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let allCrops = [];
 
