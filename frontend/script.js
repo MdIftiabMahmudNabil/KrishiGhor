@@ -342,8 +342,7 @@ function handleCheckout() {
 }
 
 
-// UI HELPER FUNCTIONS (No changes needed here)
-// ========================
+//// ========================
 
 function showLoading(show) {
     const loader = document.getElementById('loading-indicator');
