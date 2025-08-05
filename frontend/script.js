@@ -250,7 +250,6 @@ async function getAiRecommendations() {
     }
 }
 
-// ========================
 
 function setupEventListeners() {
     cartBtn.addEventListener('click', toggleCart);
