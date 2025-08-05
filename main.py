@@ -12,12 +12,10 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 @app.route('/api/crops', methods=['GET'])
 def get_crops():
-    # Get filters from frontend
     search = request.args.get('search', '')
     crop_type = request.args.get('type', '')
     region = request.args.get('region', '')
     
-    # Build Supabase query
     query = supabase.table('crops').select('*')
     
     if search:
