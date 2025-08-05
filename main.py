@@ -5,7 +5,7 @@ from ai_recommendations import get_ai_recommendations
 
 app = Flask(__name__)
 
-# 
+
 SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
