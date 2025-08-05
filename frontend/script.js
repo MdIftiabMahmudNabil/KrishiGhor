@@ -98,7 +98,6 @@ function renderCrops(filteredCrops = allCrops) {
     `).join('');
 }
 
-// ========================
 // CART FUNCTIONALITY (No changes needed here)
 // ========================
 
