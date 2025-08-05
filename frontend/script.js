@@ -1,4 +1,3 @@
-// DOM Elements
 const cropsContainer = document.getElementById('crops-container');
 const cartBtn = document.getElementById('cart-btn');
 const cartSidebar = document.getElementById('cart-sidebar');
