@@ -98,7 +98,7 @@ function renderCrops(filteredCrops = allCrops) {
     `).join('');
 }
 
-// ========================
+
 
 function addToCart(cropId) {
     const crop = allCrops.find(c => c.id === cropId);
