@@ -26,11 +26,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateCartUI();
     setupEventListeners();
     
-    // Load initial AI recommendations
+   
     getAiRecommendations();
 });
 
-// ========================
 // API COMMUNICATION (Updated with API_BASE)
 // ========================
 
