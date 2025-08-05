@@ -15,7 +15,6 @@ const checkoutBtn = document.getElementById('checkout-btn');
 let cart = JSON.parse(localStorage.getItem('cart')) || [];
 let allCrops = [];
 
-// API Base URL - This will automatically switch between local and production
 const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
   ? 'http://localhost:5000' 
   : '/api';
