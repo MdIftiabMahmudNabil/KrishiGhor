@@ -30,7 +30,7 @@ EMAIL_USER = os.getenv('EMAIL_USER')
 EMAIL_PASS = os.getenv('EMAIL_PASS')
 
 def train_model(crop_data):
-    # Feature engineering
+    # Enhanced feature engineering
     features = []
     for crop in crop_data:
         features.append([
@@ -38,66 +38,95 @@ def train_model(crop_data):
             float(crop['price']),     # Price
             float(crop['quantity']),  # Quantity
             1 if 'vegetable' in crop['type'].lower() else 0,
-            1 if 'fruit' in crop['type'].lower() else 0
+            1 if 'fruit' in crop['type'].lower() else 0,
+            1 if 'rice' in crop['type'].lower() else 0,
+            float(crop['price']) / float(crop['quantity'])  # Price per unit
         ])
     
     X = np.array(features)
-    model = NearestNeighbors(n_neighbors=3, metric='cosine')
+    model = NearestNeighbors(n_neighbors=5, metric='cosine', algorithm='brute')
     model.fit(X)
     joblib.dump(model, 'crop_model.joblib')
     return model
 
 def get_ai_recommendations(cart_items, supabase):
-    all_crops = supabase.table('crops').select('*').execute().data
-    
     try:
-        model = joblib.load('crop_model.joblib')
-    except:
-        model = train_model(all_crops)
-    
-    recommendations = []
-    
-    for item in cart_items:
-        item_features = [
-            len(item['name']),
-            float(item['price']),
-            float(item.get('quantity', 1)),
-            1 if 'vegetable' in item['type'].lower() else 0,
-            1 if 'fruit' in item['type'].lower() else 0
-        ]
+        all_crops = supabase.table('crops').select('*').execute().data
         
-        distances, indices = model.kneighbors([item_features])
+        try:
+            model = joblib.load('crop_model.joblib')
+        except:
+            model = train_model(all_crops)
         
-        for idx in indices[0]:
-            if all_crops[idx]['id'] != item.get('id'):
-                recommendations.append(all_crops[idx])
-    
-    unique_recs = []
-    seen_ids = set()
-    for crop in recommendations:
-        if crop['id'] not in seen_ids:
-            unique_recs.append(crop)
-            seen_ids.add(crop['id'])
-    
-    return unique_recs[:3]
+        recommendations = []
+        
+        for item in cart_items:
+            item_features = [
+                len(item['name']),
+                float(item['price']),
+                float(item.get('quantity', 1)),
+                1 if 'vegetable' in item['type'].lower() else 0,
+                1 if 'fruit' in item['type'].lower() else 0,
+                1 if 'rice' in item['type'].lower() else 0,
+                float(item['price']) / float(item.get('quantity', 1))
+            ]
+            
+            distances, indices = model.kneighbors([item_features])
+            
+            for idx in indices[0]:
+                if all_crops[idx]['id'] != item.get('id'):
+                    recommendations.append({
+                        **all_crops[idx],
+                        'similarity_score': 1 - distances[0][indices[0].tolist().index(idx)]
+                    })
+        
+        # Sort by similarity score and remove duplicates
+        unique_recs = []
+        seen_ids = set()
+        for crop in sorted(recommendations, key=lambda x: x['similarity_score'], reverse=True):
+            if crop['id'] not in seen_ids:
+                unique_recs.append(crop)
+                seen_ids.add(crop['id'])
+        
+        return unique_recs[:5]
+    except Exception as e:
+        print(f"AI Recommendation Error: {str(e)}")
+        return []
 
 @app.route('/api/crops', methods=['GET'])
 def get_crops():
-    search = request.args.get('search', '')
-    crop_type = request.args.get('type', '')
-    region = request.args.get('region', '')
-    
-    query = supabase.table('crops').select('*')
-    
-    if search:
-        query = query.ilike('name', f'%{search}%')
-    if crop_type:
-        query = query.eq('type', crop_type)
-    if region:
-        query = query.eq('region', region)
-    
-    crops = query.execute()
-    return jsonify(crops.data)
+    try:
+        search = request.args.get('search', '')
+        crop_type = request.args.get('type', '')
+        region = request.args.get('region', '')
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 12))
+        
+        query = supabase.table('crops').select('*')
+        
+        if search:
+            query = query.ilike('name', f'%{search}%')
+        if crop_type:
+            query = query.eq('type', crop_type)
+        if region:
+            query = query.eq('region', region)
+        
+        # Add pagination
+        query = query.range((page-1)*per_page, page*per_page-1)
+        
+        crops = query.execute()
+        return jsonify({
+            'success': True,
+            'data': crops.data,
+            'page': page,
+            'per_page': per_page,
+            'total': len(crops.data)
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/api/recommendations', methods=['POST'])
 def recommendations():
@@ -106,7 +135,8 @@ def recommendations():
         recommendations = get_ai_recommendations(cart_items, supabase)
         return jsonify({
             'success': True,
-            'recommendations': recommendations
+            'recommendations': recommendations,
+            'message': 'AI recommendations generated based on your cart items'
         })
     except Exception as e:
         return jsonify({
@@ -123,8 +153,22 @@ def create_order():
         shipping_info = order_data.get('shipping_info', {})
         payment_method = order_data.get('payment_method', 'cash_on_delivery')
         
-        # Calculate total
-        total = sum(item['price'] * item['quantity'] for item in items)
+        # Validate required fields
+        if not all([user_id, items, shipping_info.get('address'), shipping_info.get('phone')]):
+            return jsonify({
+                'success': False,
+                'error': 'Missing required fields'
+            }), 400
+        
+        # Calculate total and validate items
+        total = 0
+        for item in items:
+            if not all(k in item for k in ['id', 'name', 'price', 'quantity']):
+                return jsonify({
+                    'success': False,
+                    'error': 'Invalid item format'
+                }), 400
+            total += item['price'] * item['quantity']
         
         # Create order record
         order_id = str(uuid.uuid4())
@@ -136,15 +180,16 @@ def create_order():
             'status': 'pending',
             'payment_method': payment_method,
             'shipping_address': shipping_info.get('address'),
-            'shipping_region': shipping_info.get('region'),
+            'shipping_region': shipping_info.get('region', ''),
             'shipping_phone': shipping_info.get('phone'),
-            'shipping_email': shipping_info.get('email')
+            'shipping_email': shipping_info.get('email', ''),
+            'payment_status': 'pending'
         }
         
         # Insert into Supabase
         supabase.table('orders').insert(order_record).execute()
         
-        # Create order items
+        # Create order items and update crop quantities
         for item in items:
             order_item = {
                 'order_id': order_id,
@@ -154,6 +199,9 @@ def create_order():
                 'total_price': item['price'] * item['quantity']
             }
             supabase.table('order_items').insert(order_item).execute()
+            
+            # Update crop quantity in inventory
+            supabase.table('crops').update({'quantity': item['remaining_quantity']}).eq('id', item['id']).execute()
         
         # Process payment if not cash on delivery
         if payment_method != 'cash_on_delivery':
@@ -163,6 +211,8 @@ def create_order():
                     'success': False,
                     'error': payment_result.get('error', 'Payment failed')
                 }), 400
+            else:
+                supabase.table('orders').update({'payment_status': 'completed'}).eq('id', order_id).execute()
         
         # Send confirmation email
         send_order_confirmation(order_record, items)
@@ -182,17 +232,28 @@ def create_order():
 @app.route('/api/orders/<user_id>', methods=['GET'])
 def get_user_orders(user_id):
     try:
-        # Get orders
-        orders = supabase.table('orders').select('*').eq('user_id', user_id).execute().data
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 10))
+        
+        # Get orders with pagination
+        orders = supabase.table('orders').select('*').eq('user_id', user_id
+            ).order('order_date', desc=True
+            ).range((page-1)*per_page, page*per_page-1).execute().data
         
         # Get order items for each order
         for order in orders:
-            items = supabase.table('order_items').select('*, crops(name, type)').eq('order_id', order['id']).execute().data
+            items = supabase.table('order_items').select('*, crops(name, type, region)').eq('order_id', order['id']).execute().data
             order['items'] = items
+        
+        # Get total count for pagination
+        count = supabase.table('orders').select('count', count='exact').eq('user_id', user_id).execute().count
         
         return jsonify({
             'success': True,
-            'orders': orders
+            'data': orders,
+            'page': page,
+            'per_page': per_page,
+            'total': count
         })
     except Exception as e:
         return jsonify({
@@ -230,9 +291,26 @@ def generate_invoice(order_id):
 def process_payment(order_id, amount, method):
     """Simulate payment processing (in a real app, integrate with bKash API)"""
     if method == 'bkash':
-        return {'success': True, 'transaction_id': f'BKASH_{uuid.uuid4()}'}
+        # In a real implementation, you would:
+        # 1. Create payment request to bKash API
+        # 2. Verify payment
+        # 3. Return success/failure
+        return {
+            'success': True, 
+            'transaction_id': f'BKASH_{uuid.uuid4()}',
+            'message': 'bKash payment processed successfully'
+        }
+    elif method in ['nagad', 'card']:
+        return {
+            'success': True,
+            'transaction_id': f'{method.upper()}_{uuid.uuid4()}',
+            'message': f'{method} payment processed successfully'
+        }
     else:
-        return {'success': False, 'error': 'Unsupported payment method'}
+        return {
+            'success': False, 
+            'error': 'Unsupported payment method'
+        }
 
 def send_order_confirmation(order, items):
     """Send order confirmation email"""
@@ -242,44 +320,80 @@ def send_order_confirmation(order, items):
     
     msg = MIMEMultipart()
     msg['From'] = EMAIL_USER
-    msg['To'] = order['shipping_email']
+    msg['To'] = order['shipping_email'] or 'customer@example.com'
     msg['Subject'] = f"KrishiGhor Order Confirmation - #{order['id']}"
     
     # Create email body
     email_body = f"""
-    <h2>Thank you for your order!</h2>
-    <p>Your order #{order['id']} has been received and is being processed.</p>
-    
-    <h3>Order Summary</h3>
-    <table border="1" cellpadding="5" cellspacing="0">
-        <tr>
-            <th>Item</th>
-            <th>Quantity</th>
-            <th>Price</th>
-            <th>Total</th>
-        </tr>
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+            .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+            .header {{ background-color: #2e7d32; color: white; padding: 15px; text-align: center; }}
+            .order-details {{ margin: 20px 0; }}
+            table {{ width: 100%; border-collapse: collapse; }}
+            th, td {{ padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }}
+            th {{ background-color: #f2f2f2; }}
+            .total {{ font-weight: bold; font-size: 1.2em; }}
+            .footer {{ margin-top: 20px; font-size: 0.9em; color: #666; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h2>KrishiGhor - Order Confirmation</h2>
+            </div>
+            
+            <p>Dear Customer,</p>
+            <p>Thank you for your order! Your order #{order['id']} has been received and is being processed.</p>
+            
+            <div class="order-details">
+                <h3>Order Summary</h3>
+                <table>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
     """
     
     for item in items:
         email_body += f"""
-        <tr>
-            <td>{item['crops']['name']}</td>
-            <td>{item['quantity']}</td>
-            <td>৳{item['unit_price']}</td>
-            <td>৳{item['total_price']}</td>
-        </tr>
+                    <tr>
+                        <td>{item['crops']['name']}</td>
+                        <td>{item['quantity']}</td>
+                        <td>৳{item['unit_price']:.2f}</td>
+                        <td>৳{item['total_price']:.2f}</td>
+                    </tr>
         """
     
     email_body += f"""
-    </table>
-    <p><strong>Total Amount: ৳{order['total_amount']}</strong></p>
-    
-    <h3>Shipping Information</h3>
-    <p>Address: {order['shipping_address']}</p>
-    <p>Region: {order['shipping_region']}</p>
-    <p>Phone: {order['shipping_phone']}</p>
-    
-    <p>We'll notify you when your order ships. Thank you for shopping with KrishiGhor!</p>
+                    <tr class="total">
+                        <td colspan="3">Total Amount:</td>
+                        <td>৳{order['total_amount']:.2f}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="shipping-info">
+                <h3>Shipping Information</h3>
+                <p><strong>Address:</strong> {order['shipping_address']}</p>
+                <p><strong>Region:</strong> {order['shipping_region']}</p>
+                <p><strong>Phone:</strong> {order['shipping_phone']}</p>
+                <p><strong>Email:</strong> {order['shipping_email']}</p>
+                <p><strong>Payment Method:</strong> {order['payment_method'].replace('_', ' ').title()}</p>
+                <p><strong>Status:</strong> {order['status'].title()}</p>
+            </div>
+            
+            <div class="footer">
+                <p>We'll notify you when your order ships. Thank you for shopping with KrishiGhor!</p>
+                <p>If you have any questions, please contact our customer support.</p>
+            </div>
+        </div>
+    </body>
+    </html>
     """
     
     msg.attach(MIMEText(email_body, 'html'))
@@ -300,54 +414,77 @@ def create_invoice_pdf(order, items):
     doc = SimpleDocTemplate(filename, pagesize=letter)
     styles = getSampleStyleSheet()
     
+    # Custom styles
+    styles.add(ParagraphStyle(name='InvoiceTitle', fontSize=18, alignment=1, spaceAfter=12))
+    styles.add(ParagraphStyle(name='InvoiceHeader', fontSize=12, spaceAfter=6))
+    styles.add(ParagraphStyle(name='InvoiceText', fontSize=10, spaceAfter=12))
+    
     elements = []
     
-    elements.append(Paragraph("KrishiGhor - Bangladesh Crop Marketplace", styles['Title']))
+    # Header
+    elements.append(Paragraph("KrishiGhor - Bangladesh Crop Marketplace", styles['InvoiceTitle']))
     elements.append(Paragraph("Invoice", styles['Heading1']))
     elements.append(Spacer(1, 12))
     
-    elements.append(Paragraph(f"<b>Order ID:</b> {order['id']}", styles['Normal']))
-    elements.append(Paragraph(f"<b>Date:</b> {order['order_date']}", styles['Normal']))
-    elements.append(Paragraph(f"<b>Status:</b> {order['status'].capitalize()}", styles['Normal']))
+    # Order info
+    elements.append(Paragraph(f"<b>Order ID:</b> {order['id']}", styles['InvoiceHeader']))
+    elements.append(Paragraph(f"<b>Date:</b> {datetime.fromisoformat(order['order_date']).strftime('%B %d, %Y %I:%M %p')}", styles['InvoiceHeader']))
+    elements.append(Paragraph(f"<b>Status:</b> {order['status'].capitalize()}", styles['InvoiceHeader']))
     elements.append(Spacer(1, 24))
     
+    # Shipping info
     elements.append(Paragraph("<b>Shipping Information:</b>", styles['Heading2']))
-    elements.append(Paragraph(f"Email: {order['shipping_email']}", styles['Normal']))
-    elements.append(Paragraph(f"Phone: {order['shipping_phone']}", styles['Normal']))
-    elements.append(Paragraph(f"Address: {order['shipping_address']}", styles['Normal']))
-    elements.append(Paragraph(f"Region: {order['shipping_region']}", styles['Normal']))
+    elements.append(Paragraph(f"<b>Name:</b> {order.get('shipping_name', 'Customer')}", styles['InvoiceText']))
+    elements.append(Paragraph(f"<b>Email:</b> {order.get('shipping_email', 'N/A')}", styles['InvoiceText']))
+    elements.append(Paragraph(f"<b>Phone:</b> {order.get('shipping_phone', 'N/A')}", styles['InvoiceText']))
+    elements.append(Paragraph(f"<b>Address:</b> {order.get('shipping_address', 'N/A')}", styles['InvoiceText']))
+    elements.append(Paragraph(f"<b>Region:</b> {order.get('shipping_region', 'N/A')}", styles['InvoiceText']))
     elements.append(Spacer(1, 24))
     
-    table_data = [['Item', 'Quantity', 'Unit Price', 'Total']]
-    for item in items:
-        table_data.append([
+    # Items table
+    table_data = [
+        ['Item', 'Quantity', 'Unit Price', 'Total'],
+        *[[
             item['crops']['name'],
             str(item['quantity']),
             f"৳{item['unit_price']:.2f}",
             f"৳{item['total_price']:.2f}"
-        ])
-    
-    table_data.append(['', '', '<b>Total:</b>', f"<b>৳{order['total_amount']:.2f}</b>"])
+        ] for item in items],
+        ['', '', '<b>Subtotal:</b>', f"<b>৳{order['total_amount']:.2f}</b>"],
+        ['', '', '<b>Shipping:</b>', '৳0.00'],
+        ['', '', '<b>Total:</b>', f"<b>৳{order['total_amount']:.2f}</b>"]
+    ]
     
     items_table = Table(table_data, colWidths=[250, 80, 80, 80])
     items_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2e7d32')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 12),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -2), colors.beige),
+        ('BACKGROUND', (0, 1), (-1, -4), colors.HexColor('#f8f9fa')),
         ('GRID', (0, 0), (-1, -1), 1, colors.black),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+        ('FONTNAME', (-2, -2), (-1, -1), 'Helvetica-Bold'),
     ]))
     
     elements.append(items_table)
     elements.append(Spacer(1, 36))
     
-    elements.append(Paragraph("Thank you for your business!", styles['Normal']))
-    elements.append(Paragraph("KrishiGhor - Transparent Crop Pricing & Supply Chain Platform", styles['Italic']))
+    # Payment info
+    elements.append(Paragraph("<b>Payment Information:</b>", styles['Heading2']))
+    elements.append(Paragraph(f"<b>Method:</b> {order['payment_method'].replace('_', ' ').title()}", styles['InvoiceText']))
+    elements.append(Paragraph(f"<b>Status:</b> {order.get('payment_status', 'pending').title()}", styles['InvoiceText']))
+    elements.append(Spacer(1, 24))
     
+    # Footer
+    elements.append(Paragraph("Thank you for your business!", styles['InvoiceText']))
+    elements.append(Paragraph("KrishiGhor - Transparent Crop Pricing & Supply Chain Platform", styles['Italic']))
+    elements.append(Paragraph("Contact: support@krishighor.com | Phone: +880 1XXX-XXXXXX", styles['Italic']))
+    
+    # Build PDF
     doc.build(elements)
     return filename
 
