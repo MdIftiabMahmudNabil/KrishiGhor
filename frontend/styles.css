@@ -1,43 +1,77 @@
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f5f5f5;
+/* Add these to your existing style.css */
+
+/* Dark mode toggle styles */
+.dark {
+    background-color: #1a202c;
+    color: #e2e8f0;
 }
 
-header {
-    background-color: #2e7d32;
-    color: white;
-    padding: 1rem;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+.dark .bg-white {
+    background-color: #2d3748;
+    color: #e2e8f0;
 }
 
-#crops-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
-    padding: 1rem;
+.dark .bg-gray-50 {
+    background-color: #4a5568;
 }
 
-.crop-card {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    padding: 1rem;
+.dark .text-gray-800 {
+    color: #e2e8f0;
 }
 
-#cart-sidebar {
-    position: fixed;
-    right: 0;
-    top: 0;
-    width: 300px;
-    height: 100%;
-    background: white;
-    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
+.dark .border-gray-200 {
+    border-color: #4a5568;
 }
 
-#cart-sidebar.show {
-    transform: translateX(0);
+/* Dashboard styles */
+#buyer-dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+#orders-table-body tr:hover {
+    background-color: rgba(74, 85, 104, 0.1);
+}
+
+.dark #orders-table-body tr:hover {
+    background-color: rgba(74, 85, 104, 0.5);
+}
+
+/* Checkout modal styles */
+#bkash-details {
+    transition: all 0.3s ease;
+}
+
+/* Invoice styles */
+.invoice-header {
+    border-bottom: 2px solid #2e7d32;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
+/* Animation for loading */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* Transition effects */
+.fade-enter-active, .fade-leave-active {
+    transition: opacity 0.5s;
+}
+.fade-enter, .fade-leave-to {
+    opacity: 0;
 }
