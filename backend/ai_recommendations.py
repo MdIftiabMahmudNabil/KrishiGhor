@@ -21,10 +21,10 @@ def train_model(crop_data):
     return model
 
 def get_ai_recommendations(cart_items, supabase):
-    # Get all crops
+   
     all_crops = supabase.table('crops').select('*').execute().data
     
-    # Try loading existing model or train new one
+    
     try:
         model = joblib.load('crop_model.joblib')
     except:
@@ -33,7 +33,6 @@ def get_ai_recommendations(cart_items, supabase):
     recommendations = []
     
     for item in cart_items:
-        # Find similar items to what's in cart
         item_features = [
             len(item['name']),
             float(item['price']),
@@ -44,12 +43,11 @@ def get_ai_recommendations(cart_items, supabase):
         
         distances, indices = model.kneighbors([item_features])
         
-        # Add recommendations (excluding the item itself)
         for idx in indices[0]:
             if all_crops[idx]['id'] != item.get('id'):
                 recommendations.append(all_crops[idx])
     
-    # Remove duplicates
+   
     unique_recs = []
     seen_ids = set()
     for crop in recommendations:
@@ -57,4 +55,4 @@ def get_ai_recommendations(cart_items, supabase):
             unique_recs.append(crop)
             seen_ids.add(crop['id'])
     
-    return unique_recs[:3]  # Return top 3 recommendations
+    return unique_recs[:3]  
