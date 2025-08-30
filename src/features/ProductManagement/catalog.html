@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>KrishiGhor – Product Catalog</title>
+        <link rel="stylesheet" href="styles.css" />
+        <script
+            src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+            defer
+        ></script>
+        <script type="module" src="js/supabase.js" defer></script>
+        <script type="module" src="js/catalog.js" defer></script>
+    </head>
+    <body>
+        <header class="header">
+            <img src="krishighor_logo.png" alt="KrishiGhor Logo" class="logo" />
+            <div class="brand">KrishiGhor</div>
+            <nav style="display: flex; gap: 12px; align-items: center">
+                <a class="btn" href="index.html">Dashboard</a>
+                <a class="btn btn--primary" href="product-form.html"
+                    >Add Product</a
+                >
+                <div class="user-menu">
+                    <button
+                        id="userMenuBtn"
+                        class="user-chip"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                    >
+                        <img
+                            class="avatar"
+                            src="https://i.pravatar.cc/40?img=12"
+                            alt=""
+                        />
+                        <span class="welcome">Welcome Rahim Rahman</span>
+                    </button>
+                    <div id="userMenu" class="dropdown" role="menu">
+                        <a href="#" id="settingsLink" role="menuitem"
+                            >Settings</a
+                        >
+                        <a href="#" id="signOutLink" role="menuitem"
+                            >Sign out</a
+                        >
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <main class="container">
+            <div id="notice" class="notice" aria-live="polite"></div>
+
+            <section class="layout">
+                <aside class="sidebar card">
+                    <h2 class="h6">Catalog Filters</h2>
+                    <div class="filter-section">
+                        <label for="categoryFilter">Category</label>
+                        <select id="categoryFilter">
+                            <option value="all">All Categories</option>
+                            <option value="vegetables">Vegetables</option>
+                            <option value="fruits">Fruits</option>
+                            <option value="grains">Grains</option>
+                            <option value="dairy">Dairy</option>
+                        </select>
+                    </div>
+                    <div class="filter-section">
+                        <label for="priceFilter">Price Range</label>
+                        <select id="priceFilter">
+                            <option value="all">All Prices</option>
+                            <option value="low">Under ৳50</option>
+                            <option value="medium">৳50 - ৳200</option>
+                            <option value="high">Over ৳200</option>
+                        </select>
+                    </div>
+                    <div class="filter-section">
+                        <label for="locationFilter">Location</label>
+                        <select id="locationFilter">
+                            <option value="all">All Locations</option>
+                            <option value="bogura">Bogura</option>
+                            <option value="dhaka">Dhaka</option>
+                            <option value="chittagong">Chittagong</option>
+                        </select>
+                    </div>
+                    <button id="clearFilters" class="btn">Clear Filters</button>
+                </aside>
+
+                <section class="main card">
+                    <div class="toolbar">
+                        <input
+                            id="searchInput"
+                            type="search"
+                            placeholder="Search products..."
+                        />
+                        <select id="sortBy">
+                            <option value="name">Sort by Name</option>
+                            <option value="price_low">
+                                Price: Low to High
+                            </option>
+                            <option value="price_high">
+                                Price: High to Low
+                            </option>
+                            <option value="newest">Newest First</option>
+                        </select>
+                    </div>
+
+                    <div id="loading" class="loading">Loading products...</div>
+
+                    <div id="productsGrid" class="products-grid"></div>
+
+                    <div
+                        id="noProducts"
+                        class="no-products"
+                        style="display: none"
+                    >
+                        <p>No products found matching your criteria.</p>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </body>
+</html>
