@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>কৃষিঘর - পরিবহন মনিটরিং সিস্টেম</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@300;400;600;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="nav-brand">
+                <i class="fas fa-seedling"></i>
+                <span class="logo-text" data-bn="কৃষিঘর" data-en="KrishiGhor">কৃষিঘর</span>
+                <span class="subtitle" data-bn="পরিবহন মনিটরিং" data-en="Transport Monitor">পরিবহন মনিটরিং</span>
+            </div>
+            <div class="nav-controls">
+                <button class="language-toggle" onclick="toggleLanguage()">
+                    <i class="fas fa-globe"></i>
+                    <span id="lang-text">English</span>
+                </button>
+                <button class="profile-btn">
+                    <i class="fas fa-user-circle"></i>
+                    <span data-bn="প্রোফাইল" data-en="Profile">প্রোফাইল</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="search-container">
+                    <div class="search-header">
+                        <i class="fas fa-search"></i>
+                        <h3 data-bn="আপনার ট্রাক খুঁজুন" data-en="Search Your Truck">আপনার ট্রাক খুঁজুন</h3>
+                    </div>
+                    <div class="search-bar">
+                        <div class="search-input-group">
+                            <label data-bn="ট্র্যাকিং নম্বর" data-en="Tracking Number">ট্র্যাকিং নম্বর</label>
+                            <input type="text" id="tracking-search" placeholder="KG-2025-001234" maxlength="15">
+                            <i class="fas fa-search search-icon"></i>
+                        </div>
+                        <button class="search-btn" onclick="searchTracking()">
+                            <i class="fas fa-search"></i>
+                            <span data-bn="খুঁজুন" data-en="Search">খুঁজুন</span>
+                        </button>
+                    </div>
+                    <div class="search-results" id="search-results">
+                        <!-- Search results will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>১২</h3>
+                        <p data-bn="সক্রিয় পরিবহন" data-en="Active Transports">সক্রিয় পরিবহন</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>২৮ মিনিট</h3>
+                        <p data-bn="গড় ডেলিভারি সময়" data-en="Avg Delivery Time">গড় ডেলিভারি সময়</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>৳৪৫০</h3>
+                        <p data-bn="গড় খরচ" data-en="Avg Cost">গড় খরচ</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>৪.৮</h3>
+                        <p data-bn="গড় রেটিং" data-en="Avg Rating">গড় রেটিং</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="content-grid">
+                <!-- Transportation Request Form -->
+                <div class="card form-card">
+                    <div class="card-header">
+                        <h2 data-bn="নতুন পরিবহন অনুরোধ" data-en="New Transport Request">নতুন পরিবহন অনুরোধ</h2>
+                        <button class="voice-btn" onclick="startVoiceInput()">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                    </div>
+                    <form id="transport-form" class="transport-form">
+                        <div class="form-group">
+                            <label data-bn="ফসলের ধরন" data-en="Crop Type">ফসলের ধরন</label>
+                            <select id="crop-type" required>
+                                <option value="" data-bn="ফসল নির্বাচন করুন" data-en="Select Crop">ফসল নির্বাচন করুন</option>
+                                <option value="rice" data-bn="ধান" data-en="Rice">ধান</option>
+                                <option value="wheat" data-bn="গম" data-en="Wheat">গম</option>
+                                <option value="potato" data-bn="আলু" data-en="Potato">আলু</option>
+                                <option value="onion" data-bn="পেঁয়াজ" data-en="Onion">পেঁয়াজ</option>
+                                <option value="tomato" data-bn="টমেটো" data-en="Tomato">টমেটো</option>
+                            </select>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label data-bn="পরিমাণ (কেজি)" data-en="Quantity (kg)">পরিমাণ (কেজি)</label>
+                                <input type="number" id="quantity" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label data-bn="গাড়ির ধরন" data-en="Vehicle Type">গাড়ির ধরন</label>
+                                <select id="vehicle-type" required>
+                                    <option value="" data-bn="গাড়ি নির্বাচন করুন" data-en="Select Vehicle">গাড়ি নির্বাচন করুন</option>
+                                    <option value="truck" data-bn="ট্রাক" data-en="Truck">ট্রাক</option>
+                                    <option value="pickup" data-bn="পিকআপ" data-en="Pickup">পিকآপ</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label data-bn="শুরুর স্থান" data-en="Origin Location">শুরুর স্থান</label>
+                            <input type="text" id="origin" placeholder="আপনার বর্তমান অবস্থান" required>
+                            <button type="button" class="location-btn" onclick="getCurrentLocation()">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </button>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label data-bn="গন্তব্য জেলা" data-en="Destination District">গন্তব্য জেলা</label>
+                                <select id="district" onchange="loadMarkets()" required>
+                                    <option value="" data-bn="জেলা নির্বাচন করুন" data-en="Select District">জেলা নির্বাচন করুন</option>
+                                    <option value="dhaka" data-bn="ঢাকা" data-en="Dhaka">ঢাকা</option>
+                                    <option value="chittagong" data-bn="চট্টগ্রাম" data-en="Chittagong">চট্টগ্রাম</option>
+                                    <option value="sylhet" data-bn="সিলেট" data-en="Sylhet">সিলেট</option>
+                                    <option value="rajshahi" data-bn="রাজশাহী" data-en="Rajshahi">রাজশাহী</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label data-bn="বাজার" data-en="Market">বাজার</label>
+                                <select id="market" required>
+                                    <option value="" data-bn="প্রথমে জেলা নির্বাচন করুন" data-en="Select district first">প্রথমে জেলা নির্বাচন করুন</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="ai-suggestions" id="ai-suggestions">
+                            <h4 data-bn="এআই সুপারিশ" data-en="AI Recommendations">এআই সুপারিশ</h4>
+                            <div class="suggestion-cards"></div>
+                        </div>
+
+                        <div class="cost-estimate" id="cost-estimate">
+                            <div class="estimate-card">
+                                <h4 data-bn="আনুমানিক খরচ" data-en="Estimated Cost">আনুমানিক খরচ</h4>
+                                <div class="cost-breakdown">
+                                    <div class="cost-item">
+                                        <span data-bn="দূরত্ব" data-en="Distance">দূরত্ব</span>
+                                        <span id="distance">-- কিমি</span>
+                                    </div>
+                                    <div class="cost-item">
+                                        <span data-bn="পরিবহন খরচ" data-en="Transport Cost">পরিবহন খরচ</span>
+                                        <span id="transport-cost">৳ --</span>
+                                    </div>
+                                    <div class="cost-item total">
+                                        <span data-bn="মোট খরچ" data-en="Total Cost">মোট খরচ</span>
+                                        <span id="total-cost">৳ --</span>
+                                    </div>
+                                </div>
+                                <div class="eta-info">
+                                    <i class="fas fa-clock"></i>
+                                    <span data-bn="আনুমানিক সময়:" data-en="Estimated Time:">আনুমানিক সময়:</span>
+                                    <span id="eta">-- মিনিট</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="submit-btn">
+                            <i class="fas fa-paper-plane"></i>
+                            <span data-bn="পরিবহন অনুরোধ করুন" data-en="Request Transport">পরিবহন অনুরোধ করুন</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Live Tracking Panel -->
+                <div class="card tracking-card" id="tracking-card">
+                    <div class="card-header">
+                        <h2 data-bn="লাইভ ট্র্যাকিং" data-en="Live Tracking">লাইভ ট্র্যাকিং</h2>
+                        <div class="tracking-status">
+                            <span class="status-dot" id="main-status-dot"></span>
+                            <span id="main-status-text" data-bn="অপেক্ষারত" data-en="Waiting">অপেক্ষারত</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tracking-number-display" id="tracking-number-display" style="display: none;">
+                        <h4 data-bn="ট্র্যাকিং নম্বর" data-en="Tracking Number">ট্র্যাকিং নম্বর</h4>
+                        <div class="tracking-number-value" id="tracking-number-value">KG-2025-001234</div>
+                    </div>
+                    
+                    <div class="map-container" id="map-container">
+                        <div class="map-placeholder" id="map-placeholder">
+                            <i class="fas fa-map-marked-alt"></i>
+                            <p data-bn="ম্যাপ লোড হচ্ছে..." data-en="Loading map...">ম্যাপ লোড হচ্ছে...</p>
+                        </div>
+                        <div class="live-map" id="live-map" style="display: none;">
+                            <div class="route-line" style="top: 50%; left: 10%;"></div>
+                            <div class="truck-marker">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="location-pin origin">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="location-pin destination">
+                                <i class="fas fa-flag-checkered"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tracking-info">
+                        <div class="vehicle-info" id="vehicle-info" style="display: none;">
+                            <div class="vehicle-details">
+                                <h4 data-bn="গাড়ির তথ্য" data-en="Vehicle Info">গাড়ির তথ্য</h4>
+                                <p><span data-bn="নম্বর:" data-en="Number:">নম্বর:</span> <span id="vehicle-number">ঢাকা-মেট্রো-গ-১২৩৪৫৬</span></p>
+                                <p><span data-bn="চালক:" data-en="Driver:">চালক:</span> <span id="driver-name">মোঃ রহিম উদ্দিন</span></p>
+                                <p><span data-bn="ফোন:" data-en="Phone:">ফোন:</span> <span id="driver-phone">০১৭১২৩৪৫৬৭৮</span></p>
+                            </div>
+                            <div class="vehicle-status">
+                                <div class="status-item">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                    <span id="vehicle-speed">৪৫ কিমি/ঘন্টা</span>
+                                </div>
+                                <div class="status-item">
+                                    <i class="fas fa-route"></i>
+                                    <span id="remaining-distance">১২ কিমি বাকি</span>
+                                </div>
+                                <div class="status-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span id="remaining-time">২৫ মিনিট</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="progress-tracker" id="progress-tracker">
+                            <div class="progress-step" id="step-pickup">
+                                <div class="step-icon"><i class="fas fa-box"></i></div>
+                                <div class="step-info">
+                                    <h5 data-bn="পিকআপ অপেক্ষারত" data-en="Pickup Pending">পিকআপ অপেক্ষারত</h5>
+                                    <span id="pickup-time">--:--</span>
+                                </div>
+                            </div>
+                            <div class="progress-step" id="step-transit">
+                                <div class="step-icon"><i class="fas fa-truck"></i></div>
+                                <div class="step-info">
+                                    <h5 data-bn="পরিবহনে" data-en="In Transit">পরিবহনে</h5>
+                                    <span id="transit-time">--:--</span>
+                                </div>
+                            </div>
+                            <div class="progress-step" id="step-delivery">
+                                <div class="step-icon"><i class="fas fa-flag-checkered"></i></div>
+                                <div class="step-info">
+                                    <h5 data-bn="ডেলিভারি" data-en="Delivery">ডেলিভারি</h5>
+                                    <span id="delivery-time">--:--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="card orders-card">
+                <div class="card-header">
+                    <h2 data-bn="সাম্প্রতিক অর্ডার" data-en="Recent Orders">সাম্প্রতিক অর্ডার</h2>
+                    <button class="view-all-btn" data-bn="সব দেখুন" data-en="View All">সব দেখুন</button>
+                </div>
+                <div class="orders-list" id="orders-list">
+                    <div class="order-item">
+                        <div class="order-info">
+                            <h4>ধান - ৫০০ কেজি</h4>
+                            <p><span data-bn="গন্তব্য:" data-en="Destination:">গন্তব্য:</span> কাওরান বাজার, ঢাকা</p>
+                            <p><span data-bn="ট্র্যাকিং:" data-en="Tracking:">ট্র্যাকিং:</span> KG-2025-001230</p>
+                            <span class="order-date">২৮ জুলাই, ২০২৫</span>
+                        </div>
+                        <div class="order-status">
+                            <span class="status-badge delivered" data-bn="ডেলিভারি সম্পন্ন" data-en="Delivered">ডেলিভারি সম্পন্ন</span>
+                            <span class="order-cost">৳ ৬৫০</span>
+                        </div>
+                    </div>
+                    <div class="order-item">
+                        <div class="order-info">
+                            <h4>আলু - ৩০০ কেজি</h4>
+                            <p><span data-bn="গন্তব্য:" data-en="Destination:">গন্তব্য:</span> চট্টগ্রাম</p>
+                            <p><span data-bn="ট্র্যাকিং:" data-en="Tracking:">ট্র্যাকিং:</span> KG-2025-001231</p>
+                            <span class="order-date">২৬ জুলাই, ২০২৫</span>
+                        </div>
+                        <div class="order-status">
+                            <span class="status-badge in-transit" data-bn="পরিবহনে" data-en="In Transit">পরিবহনে</span>
+                            <span class="order-cost">৳ ৮২০</span>
+                        </div>
+                    </div>
+                    <div class="order-item">
+                        <div class="order-info">
+                            <h4>টমেটো - ২০০ কেজি</h4>
+                            <p><span data-bn="গন্তব্য:" data-en="Destination:">গন্তব্য:</span> সিলেট</p>
+                            <p><span data-bn="ট্র্যাকিং:" data-en="Tracking:">ট্র্যাকিং:</span> KG-2025-001232</p>
+                            <span class="order-date">২৪ জুলাই, ২০২৫</span>
+                        </div>
+                        <div class="order-status">
+                            <span class="status-badge delivered" data-bn="ডেলিভারি সম্পন্ন" data-en="Delivered">ডেলিভারি সম্পন্ন</span>
+                            <span class="order-cost">৳ ৪৫০</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Voice Input Modal -->
+    <div id="voice-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-bn="ভয়েস ইনপুট" data-en="Voice Input">ভয়েস ইনপুট</h3>
+                <button class="close-btn" onclick="closeVoiceModal()">&times;</button>
+            </div>
+            <div class="voice-interface">
+                <div class="voice-animation">
+                    <div class="pulse-ring"></div>
+                    <div class="pulse-ring"></div>
+                    <div class="pulse-ring"></div>
+                    <i class="fas fa-microphone"></i>
+                </div>
+                <p id="voice-status" data-bn="কথা বলুন..." data-en="Speak now...">কথা বলুন...</p>
+                <p id="voice-transcript"></p>
+                <button id="voice-stop" class="voice-stop-btn" onclick="stopVoiceInput()">
+                    <i class="fas fa-stop"></i>
+                    <span data-bn="বন্ধ করুন" data-en="Stop">বন্ধ করুন</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="loading-overlay">
+        <div class="spinner"></div>
+        <p data-bn="লোড হচ্ছে..." data-en="Loading...">লোড হচ্ছে...</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
