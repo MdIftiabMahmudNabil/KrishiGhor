@@ -9,6 +9,9 @@
             src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
             defer
         ></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4" defer></script>
+
         <script type="module" src="js/supabase.js" defer></script>
         <script type="module" src="js/dashboard.js" defer></script>
     </head>
@@ -67,6 +70,42 @@
                         ><span class="v">+880 1700 000000</span>
                     </div>
                 </aside>
+                <section class="main card" id="analyticsCard">
+                    <h2 class="h6">Last Month Selling Items by Category</h2>
+
+                    <div class="donut-wrap">
+                        <div
+                            class="donut"
+                            style="
+                                --p-veg: 45.9;
+                                --p-dairy: 38.9;
+                                --p-fruit: 8.1;
+                                --p-grain: 7.1;
+                            "
+                            aria-label="Vegetables 45.9%, Dairy 38.9%, Fruits 8.1%, Grains 7.1%"
+                            role="img"
+                        ></div>
+
+                        <ul class="legend">
+                            <li>
+                                <span class="swatch swatch--veg"></span>
+                                Vegetables – 45.9%
+                            </li>
+                            <li>
+                                <span class="swatch swatch--dairy"></span> Dairy
+                                – 38.9%
+                            </li>
+                            <li>
+                                <span class="swatch swatch--fruit"></span>
+                                Fruits – 8.1%
+                            </li>
+                            <li>
+                                <span class="swatch swatch--grain"></span>
+                                Grains – 7.1%
+                            </li>
+                        </ul>
+                    </div>
+                </section>
 
                 <section class="main card">
                     <div class="toolbar">
