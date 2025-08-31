@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Price List</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f0fff0; color: #06470c; }
+        header { background-color: #06470c; color: #fff; padding: 20px; text-align: center; }
+        nav { display: flex; justify-content: center; background-color: #088c0d; padding: 10px; }
+        nav a { color: #fff; text-decoration: none; margin: 0 15px; font-weight: bold; }
+        nav a:hover { color: #f0fff0; }
+        table { border-collapse: collapse; width: 90%; margin: 20px auto; background-color: #fff; }
+        th, td { border: 1px solid #06470c; padding: 10px; text-align: center; }
+        th { background-color: #06470c; color: #fff; }
+        tr:nth-child(even) { background-color: #e6ffe6; }
+        tr:hover { background-color: #c4f0c4; }
+        a.action { text-decoration: none; margin: 0 5px; color: #06470c; font-weight: bold; }
+        a.action:hover { color: #088c0d; }
+        h1 { text-align: center; margin-top: 20px; }
+        .filter-form { text-align: center; margin: 20px; }
+        select, input { padding: 5px 10px; margin: 0 5px; border-radius: 5px; border: 1px solid #06470c; }
+        button { padding: 5px 15px; border: none; border-radius: 5px; background-color: #06470c; color: #fff; cursor: pointer; }
+        button:hover { background-color: #088c0d; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📋 Price List</h1>
+    </header>
+
+    <nav>
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <a href="{% url 'insights' %}">Insights</a>
+        <a href="{% url 'price_list' %}">Prices</a>
+        <a href="{% url 'add_price' %}">Add Price</a>
+    </nav>
+
+    <div class="filter-form">
+        <form method="get">
+            <label>Crop:
+                <select name="crop">
+                    <option value="">All</option>
+                    {% for crop in crops %}
+                        <option value="{{ crop }}" {% if crop == selected_crop %}selected{% endif %}>{{ crop }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Region:
+                <select name="region">
+                    <option value="">All</option>
+                    {% for region in regions %}
+                        <option value="{{ region }}" {% if region == selected_region %}selected{% endif %}>{{ region }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit">Filter</button>
+        </form>
+    </div>
+
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Crop</th>
+            <th>Region</th>
+            <th>Price</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+        {% for row in data %}
+        <tr>
+            <td>{{ row.0 }}</td>
+            <td>{{ row.1 }}</td>
+            <td>{{ row.2 }}</td>
+            <td>{{ row.3 }}</td>
+            <td>{{ row.4 }}</td>
+            <td>
+                <a class="action" href="{% url 'edit_price' row.0 %}">✏️ Edit</a>
+                <a class="action" href="{% url 'delete_price' row.0 %}">🗑️ Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

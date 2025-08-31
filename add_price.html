@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Price</title>
+    <style>
+        body { font-family: 'Roboto', Arial, sans-serif; background-color: #f0fff0; color: #06470c; margin: 20px; }
+        form { background-color: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        label { display: block; margin: 15px 0; }
+        select, input { width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #06470c; font-size: 1rem; }
+        button { padding: 10px 20px; border: none; border-radius: 10px; background-color: #06470c; color: #ffffff; font-weight: bold; cursor: pointer; }
+        button:hover { background-color: #088c0d; }
+        a { display: block; text-align: center; margin-top: 20px; color: #06470c; text-decoration: none; font-weight: bold; }
+        a:hover { color: #088c0d; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center;">➕ Add Price</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label>Crop:
+            <select name="crop">
+                {% for crop in crops %}
+                    <option value="{{ crop }}" {% if crop == selected_crop %}selected{% endif %}>{{ crop }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>Region:
+            <select name="region">
+                {% for region in regions %}
+                    <option value="{{ region }}" {% if region == selected_region %}selected{% endif %}>{{ region }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>Price: <input type="number" step="0.01" name="price" required></label>
+        <label>Date: <input type="date" name="date" required></label>
+
+        <button type="submit">Add</button>
+    </form>
+    <a href="{% url 'price_list' %}">⬅️ Back to List</a>
+</body>
+</html>
