@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>KrishiGhor – Dashboard</title>
+        <link rel="stylesheet" href="styles.css" />
+        <script
+            src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+            defer
+        ></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4" defer></script>
+
+        <script type="module" src="js/supabase.js" defer></script>
+        <script type="module" src="js/dashboard.js" defer></script>
+    </head>
+
+    <body>
+        <header class="header">
+            <img src="krishighor_logo.png" alt="KrishiGhor Logo" class="logo" />
+            <div class="brand">KrishiGhor</div>
+            <nav style="display: flex; gap: 12px; align-items: center">
+                <a class="btn" href="catalog.html">Product Catalog</a>
+                <a class="btn btn--primary" href="product-form.html"
+                    >Add Product</a
+                >
+                <div class="user-menu">
+                    <button
+                        id="userMenuBtn"
+                        class="user-chip"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                    >
+                        <img
+                            class="avatar"
+                            src="https://i.pravatar.cc/40?img=12"
+                            alt=""
+                        />
+                        <span class="welcome">Welcome Rahim Rahman</span>
+                    </button>
+                    <div id="userMenu" class="dropdown" role="menu">
+                        <a href="#" id="settingsLink" role="menuitem"
+                            >Settings</a
+                        >
+                        <a href="#" id="signOutLink" role="menuitem"
+                            >Sign out</a
+                        >
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <main class="container">
+            <div id="notice" class="notice" aria-live="polite"></div>
+
+            <section class="layout">
+                <aside class="sidebar card">
+                    <h2 class="h6">Farmer</h2>
+                    <div class="kv">
+                        <span class="k">Name</span
+                        ><span class="v">Rahim Rahman</span>
+                    </div>
+                    <div class="kv">
+                        <span class="k">Location</span
+                        ><span class="v">Bogura, BD</span>
+                    </div>
+                    <div class="kv">
+                        <span class="k">Phone</span
+                        ><span class="v">+880 1700 000000</span>
+                    </div>
+                </aside>
+                <section class="main card" id="analyticsCard">
+                    <h2 class="h6">Last Month Selling Items by Category</h2>
+
+                    <div class="donut-wrap">
+                        <div
+                            class="donut"
+                            style="
+                                --p-veg: 45.9;
+                                --p-dairy: 38.9;
+                                --p-fruit: 8.1;
+                                --p-grain: 7.1;
+                            "
+                            aria-label="Vegetables 45.9%, Dairy 38.9%, Fruits 8.1%, Grains 7.1%"
+                            role="img"
+                        ></div>
+
+                        <ul class="legend">
+                            <li>
+                                <span class="swatch swatch--veg"></span>
+                                Vegetables – 45.9%
+                            </li>
+                            <li>
+                                <span class="swatch swatch--dairy"></span> Dairy
+                                – 38.9%
+                            </li>
+                            <li>
+                                <span class="swatch swatch--fruit"></span>
+                                Fruits – 8.1%
+                            </li>
+                            <li>
+                                <span class="swatch swatch--grain"></span>
+                                Grains – 7.1%
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section class="main card">
+                    <div class="toolbar">
+                        <input
+                            id="searchInput"
+                            type="search"
+                            placeholder="Search by product name"
+                        />
+                        <select id="statusFilter">
+                            <option value="all">All</option>
+                            <option value="active">Active</option>
+                            <option value="paused">Paused</option>
+                            <option value="sold_out">Sold Out</option>
+                        </select>
+                    </div>
+
+                    <div id="loading" class="loading">Loading…</div>
+
+                    <div class="table-wrap">
+                        <table class="table" aria-describedby="Product list">
+                            <thead>
+                                <tr>
+                                    <th>Photo</th>
+                                    <th>Name</th>
+                                    <th>Price/unit</th>
+                                    <th>Qty</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+        </main>
+    </body>
+</html>
