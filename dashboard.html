@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Market Price Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0fff0;
+            color: #06470c;
+        }
+
+        header {
+            background-color: #06470c;
+            color: #ffffff;
+            padding: 20px 40px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1 { margin: 0; font-size: 2rem; }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            background-color: #088c0d;
+            padding: 10px;
+        }
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: bold;
+        }
+        nav a:hover { color: #f0fff0; }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        form {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+
+        select, input {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #06470c;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            background-color: #06470c;
+            color: #ffffff;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #088c0d;
+            transform: translateY(-2px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #06470c;
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        tr:nth-child(even) { background-color: #e6ffe6; }
+        tr:hover { background-color: #c4f0c4; }
+
+        .card {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 40px;
+        }
+
+        canvas { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📊 Market Prices Dashboard</h1>
+    </header>
+
+    <nav>
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        <a href="{% url 'insights' %}">Insights</a>
+        <a href="{% url 'price_list' %}">Prices</a>
+        <a href="{% url 'add_price' %}">Add Price</a>
+    </nav>
+
+    <div class="container">
+        <form method="get" id="filterForm">
+            <label>Crop:
+                <select name="crop">
+                    <option value="">All</option>
+                    {% for crop in crops %}
+                        <option value="{{ crop }}" {% if crop == selected_crop %}selected{% endif %}>{{ crop }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>Region:
+                <select name="region">
+                    <option value="">All</option>
+                    {% for region in regions %}
+                        <option value="{{ region }}" {% if region == selected_region %}selected{% endif %}>{{ region }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+
+            <label>Date:
+                <input type="date" name="date" value="{{ selected_date }}">
+            </label>
+
+            <button type="submit">Filter</button>
+        </form>
+
+        <div class="card">
+            <h2>Price Table</h2>
+            <table>
+                <tr>
+                    <th>Crop</th>
+                    <th>Region</th>
+                    <th>Price</th>
+                    <th>Date</th>
+                </tr>
+                {% for d in data %}
+                <tr>
+                    <td>{{ d.crop }}</td>
+                    <td>{{ d.region }}</td>
+                    <td>{{ d.price }}</td>
+                    <td>{{ d.date }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>Average Price Comparison by Crop</h2>
+            <canvas id="priceChart" width="800" height="400"></canvas>
+        </div>
+    </div>
+
+    <script>
+        function renderChart(chart_json) {
+            const chart_data = JSON.parse(chart_json);
+            const ctx = document.getElementById('priceChart').getContext('2d');
+
+            if(window.priceChartInstance){ window.priceChartInstance.destroy(); }
+
+            window.priceChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chart_data.labels,
+                    datasets: chart_data.datasets.map(ds => ({
+                        ...ds,
+                        borderWidth: 3,
+                        backgroundColor: ds.backgroundColor.replace('1)', '0.2)'),
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top', labels: { color: '#06470c', font: { weight: 'bold', size: 14 } } },
+                        title: { display: true, text: 'Crop Price Trends', color: '#06470c', font: { size: 18, weight: 'bold' } },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    interaction: { mode: 'nearest', axis: 'x', intersect: false },
+                    scales: {
+                        x: { ticks: { color: '#06470c', font: { size: 12 } } },
+                        y: { ticks: { color: '#06470c', font: { size: 12 } } }
+                    }
+                }
+            });
+        }
+
+        renderChart('{{ chart_data_json|escapejs }}');
+
+        setInterval(() => {
+            fetch(window.location.href)
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const scriptTags = doc.querySelectorAll('script');
+                    for(let script of scriptTags){
+                        const match = script.textContent.match(/renderChart\(\s*'(.+?)'\s*\)/s);
+                        if(match && match[1]){
+                            renderChart(match[1]);
+                            break;
+                        }
+                    }
+                });
+        }, 10000);
+    </script>
+</body>
+</html>
