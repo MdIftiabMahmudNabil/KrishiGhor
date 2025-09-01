@@ -330,12 +330,7 @@ class ProductCatalog {
             <span class="location-icon">📍</span> ${product.location}
           </div>
           <div class="product-actions">
-            <button class="btn btn--primary" onclick="this.viewProduct('${
-                product.id
-            }')">Update Product</button>
-            <button class="btn" onclick="this.contactFarmer('${
-                product.id
-            }')">Delete Product</button>
+            
           </div>
         </div>
       </div>
@@ -395,3 +390,10 @@ window.viewProduct = function (productId) {
 window.contactFarmer = function (productId) {
     console.log("Contact farmer for product:", productId);
 };
+
+//<button class="btn btn--primary" onclick="this.viewProduct('${
+//product.id
+//}')">Update Product</button>
+//<button class="btn" onclick="this.contactFarmer('${
+//product.id
+//}')">Delete Product</button>
