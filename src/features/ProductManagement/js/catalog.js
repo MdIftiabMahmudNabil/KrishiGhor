@@ -335,7 +335,7 @@ class ProductCatalog {
             }')">Update Product</button>
             <button class="btn" onclick="this.contactFarmer('${
                 product.id
-            }')">Update Product</button>
+            }')">Delete Product</button>
           </div>
         </div>
       </div>
